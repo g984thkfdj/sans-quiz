@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Engram">
+<meta name="theme-color" content="#3aafa9">
+<title>Engram</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f8f9fa;--surface:#fff;--surface2:#f2f4f5;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);--text:#1a1a1a;--text2:#6b7280;--text3:#b0b8c1;--accent:#3aafa9;--accent-l:#e8f5f5;--green:#4caf82;--green-l:#eaf7f0;--red:#e05c5c;--red-l:#fdf0f0;--amber:#e09b3a;--amber-l:#fdf6e8;--blue:#4a7fc1;--blue-l:#eef3fb;--purple:#7c5cbf;--purple-l:#f0edfb;--r:14px;--rsm:10px;--font:'Noto Sans JP',sans-serif;--mono:'DM Mono',monospace;--sidebar-w:220px;--nav-h:64px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:var(--bg);color:var(--text);overscroll-behavior:none}
+.app{max-width:480px;margin:0 auto;min-height:100vh;padding-top:env(safe-area-inset-top);padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom))}
+.mobile-header{display:flex;align-items:center;gap:10px;padding:14px 18px;position:sticky;top:0;z-index:90;background:#3aafa9;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.mobile-logo-icon{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mobile-logo-text{font-size:19px;font-weight:700;letter-spacing:-0.5px;color:#fff}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;z-index:100;background:rgba(255,255,255,0.97);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);padding:8px 0 calc(8px + env(safe-area-inset-bottom));display:flex;height:calc(var(--nav-h) + env(safe-area-inset-bottom))}
+.nav-btn{flex:1;padding:4px 2px;background:none;border:none;color:var(--text3);font-family:var(--font);font-size:10px;font-weight:500;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:color 0.2s}
+.nav-btn svg{width:22px;height:22px;stroke-width:1.7}
+.nav-btn.active{color:var(--accent)}
+.nav-dot{width:4px;height:4px;border-radius:50%;background:var(--accent);margin-top:1px;opacity:0;transition:opacity 0.2s}
+.nav-btn.active .nav-dot{opacity:1}
+.screen{display:none;padding:0 18px 24px}
+.screen.active{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.sync-row{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3);padding:8px 0 10px}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--text3)}
+.sdot.sy{background:var(--green)}.sdot.sg{background:var(--amber);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.ml{font-size:11px;color:var(--text2);margin-bottom:5px;font-weight:500}
+.mv{font-size:28px;font-weight:700;font-family:var(--mono);line-height:1}
+.mv.ac{color:var(--accent)}.mv.gr{color:var(--green)}.mv.am{color:var(--amber)}.mv.bl{color:var(--blue)}
+.mv-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.pb{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;margin-top:7px}
+.pf{height:100%;border-radius:2px;transition:width 0.5s}
+.pf.ac{background:var(--accent)}.pf.gr{background:var(--green)}.pf.am{background:var(--amber)}.pf.rd{background:var(--red)}.pf.bl{background:var(--blue)}
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.bac{background:var(--accent-l);color:var(--accent)}.bgr{background:var(--green-l);color:var(--green)}.brd{background:var(--red-l);color:var(--red)}.bam{background:var(--amber-l);color:var(--amber)}.bbl{background:var(--blue-l);color:var(--blue)}.bgray{background:var(--surface2);color:var(--text2)}.bpu{background:var(--purple-l);color:var(--purple)}
+.sec{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px 20px;border-radius:var(--rsm);font-family:var(--font);font-size:14px;font-weight:500;cursor:pointer;transition:all 0.15s;border:1.5px solid var(--border2);background:var(--surface);color:var(--text)}
+.btn:active{transform:scale(0.97)}
+.btn.pr{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+.btn.pr2{background:var(--surface);color:var(--accent);border-color:var(--accent);font-weight:600}
+.btn.fu{width:100%}.btn.sm{padding:9px 14px;font-size:13px}
+.btn.gh{background:transparent;border-color:transparent;color:var(--text2)}
+.btn.dn{color:var(--red);border-color:rgba(224,92,92,0.25);background:transparent}
+.rbtns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.rb{display:flex;flex-direction:column;align-items:center;padding:12px 4px;border-radius:var(--rsm);border:1.5px solid var(--border);background:var(--surface);cursor:pointer;transition:all 0.15s;font-family:var(--font)}
+.rb:active{transform:scale(0.96)}
+.rb-l{font-size:13px;font-weight:600;margin-bottom:3px}
+.rb-i{font-size:10px;font-family:var(--mono);color:var(--text2)}
+.rb.ag{border-color:rgba(224,92,92,0.35);color:var(--red)}.rb.ag:active{background:var(--red-l)}
+.rb.hd{border-color:rgba(224,155,58,0.35);color:var(--amber)}.rb.hd:active{background:var(--amber-l)}
+.rb.gd{border-color:rgba(76,175,130,0.35);color:var(--green)}.rb.gd:active{background:var(--green-l)}
+.rb.ez{border-color:rgba(58,175,169,0.35);color:var(--accent)}.rb.ez:active{background:var(--accent-l)}
+.fg{margin-bottom:14px}
+.fl{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;display:block}
+.fi{width:100%;padding:11px 14px;background:var(--surface2);border:1.5px solid transparent;border-radius:var(--rsm);color:var(--text);font-family:var(--font);font-size:14px;outline:none;transition:border-color 0.2s;-webkit-appearance:none}
+.fi:focus{border-color:var(--accent);background:#fff}
+.fi::placeholder{color:var(--text3)}
+textarea.fi{resize:vertical;min-height:70px;line-height:1.6}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cgrp{display:flex;gap:8px;flex-wrap:wrap;padding:10px 14px;background:var(--surface2);border-radius:var(--rsm);border:1.5px solid transparent}
+.cl{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:500;cursor:pointer;padding:5px 10px;border-radius:20px;color:var(--text2);transition:all 0.15s;user-select:none;border:1.5px solid transparent}
+.cl input{display:none}
+.cl.on{background:var(--accent-l);color:var(--accent);border-color:rgba(58,175,169,0.3)}
+.type-toggle{display:flex;background:var(--surface2);border-radius:var(--rsm);padding:4px;gap:4px;margin-bottom:16px}
+.type-btn{flex:1;padding:9px;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text2);transition:all 0.2s}
+.type-btn.active{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+.qcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:10px}
+.qmeta{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.qt{font-size:16px;line-height:1.8;font-weight:400;white-space:pre-wrap}
+.ch{width:100%;text-align:left;padding:14px 16px;margin-bottom:8px;background:var(--surface);border:1.5px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--font);font-size:15px;cursor:pointer;display:flex;align-items:flex-start;gap:12px;transition:all 0.15s;line-height:1.5}
+.ch:hover:not(:disabled){border-color:var(--accent);background:var(--accent-l)}
+.ch:disabled{cursor:default}
+.chl{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text3);min-width:16px;margin-top:2px}
+.ch.cor{border-color:var(--green);background:var(--green-l);color:var(--green)}.ch.cor .chl{color:var(--green)}
+.ch.wrg{border-color:var(--red);background:var(--red-l);color:var(--red)}.ch.wrg .chl{color:var(--red)}
+.fb{padding:14px 16px;border-radius:var(--rsm);font-size:14px;line-height:1.6;margin-bottom:10px}
+.fb.cor{background:var(--green-l);color:var(--green);border:1px solid rgba(76,175,130,0.25)}
+.fb.wrg{background:var(--red-l);color:var(--red);border:1px solid rgba(224,92,92,0.25)}
+.fb strong{font-weight:600}
+.memo{margin-top:8px;color:var(--text);font-size:13px;opacity:0.8;line-height:1.6;white-space:pre-wrap}
+.fc-wrap{perspective:1000px;margin-bottom:12px;cursor:pointer}
+.fc{position:relative;width:100%;min-height:200px;transform-style:preserve-3d;transition:transform 0.5s;border-radius:var(--r)}
+.fc.flipped{transform:rotateY(180deg)}
+.fc-front,.fc-back{position:absolute;width:100%;min-height:200px;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--r);padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.fc-front{background:var(--surface);border:2px solid var(--accent);top:0;left:0}
+.fc-back{background:var(--accent-l);border:2px solid var(--accent);transform:rotateY(180deg);top:0;left:0}
+.fc-label{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.fc-term{font-size:20px;font-weight:600;line-height:1.5;color:var(--text);white-space:pre-wrap}
+.fc-def{font-size:15px;line-height:1.7;color:var(--text);white-space:pre-wrap}
+.fc-hint{font-size:12px;color:var(--text3);margin-top:12px}
+.fc-spacer{height:200px}
+.due-ban{background:var(--accent-l);border:1px solid rgba(58,175,169,0.2);border-radius:var(--r);padding:16px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.missed-banner{background:var(--red-l);border:1px solid rgba(224,92,92,0.2);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.quiz-progress{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.rc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:36px 24px;text-align:center;margin-bottom:14px}
+.rpct{font-size:72px;font-weight:700;font-family:var(--mono);color:var(--accent);line-height:1;margin:10px 0}
+.rmsg{font-size:14px;color:var(--text2)}
+.qi{padding:14px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px}
+.qi:last-child{border-bottom:none}
+.qim{flex:1;min-width:0}
+.qimt{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+.qitx{font-size:14px;line-height:1.5;white-space:pre-wrap}
+.qi-actions{display:flex;gap:4px;flex-shrink:0}
+.hm{display:grid;grid-template-columns:repeat(26,1fr);gap:3px;margin:12px 0}
+.hc{aspect-ratio:1;border-radius:2px;background:var(--surface2)}
+.hc.l1{background:rgba(58,175,169,0.2)}.hc.l2{background:rgba(58,175,169,0.45)}.hc.l3{background:rgba(58,175,169,0.7)}.hc.l4{background:var(--accent)}
+.di{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px}
+.dl{min-width:76px;color:var(--text2)}
+.dbw{flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.db{height:100%;border-radius:4px;transition:width 0.5s}
+.dc{min-width:30px;text-align:right;font-family:var(--mono);font-size:12px;color:var(--text2)}
+.cat-item{padding:12px 0;border-bottom:1px solid var(--border)}.cat-item:last-child{border-bottom:none}
+.import-zone{display:block;border:2px dashed var(--accent);border-radius:var(--r);padding:20px;text-align:center;cursor:pointer;background:var(--accent-l);margin-bottom:14px;margin-top:8px;transition:all 0.2s}
+.import-zone:hover{background:#d4efee}
+.import-zone input{display:none}
+.folder-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;cursor:pointer;transition:all 0.15s;position:relative}
+.folder-card:active{transform:scale(0.97)}
+.folder-card:hover{border-color:var(--accent);background:var(--accent-l)}
+.folder-emoji{font-size:28px;margin-bottom:8px}
+.folder-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.folder-count{font-size:11px;color:var(--text2);margin-bottom:4px}
+.folder-due{position:absolute;top:10px;right:10px;background:var(--accent-l);color:var(--accent);font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px}
+.toast{position:fixed;bottom:calc(var(--nav-h) + 12px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(12px);background:var(--text);border-radius:100px;padding:10px 20px;font-size:13px;font-weight:500;color:#fff;opacity:0;transition:all 0.3s;white-space:nowrap;z-index:999;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{background:var(--green)}.toast.error{background:var(--red)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:flex;align-items:flex-end;justify-content:center}
+.modal{background:var(--surface);border-radius:var(--r) var(--r) 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:17px;font-weight:600;margin-bottom:16px}
+.modal-close{float:right;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text2)}
+.empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:14px}
+.chart-wrap{position:relative;height:200px;margin:12px 0}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.stat-title{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.06em}
+.predict-card{background:linear-gradient(135deg,var(--accent-l),#fff);border:1px solid rgba(58,175,169,0.25);border-radius:var(--r);padding:16px;margin-bottom:12px;text-align:center}
+.predict-days{font-size:48px;font-weight:700;font-family:var(--mono);color:var(--accent)}
+@media(min-width:768px){
+  body{background:#eef1f3}
+  .app{max-width:none;margin:0;padding:0;display:flex;min-height:100vh}
+  .mobile-header,.bottom-nav{display:none}
+  .sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:50;overflow-y:auto}
+  .sidebar-logo{padding:28px 24px 20px;border-bottom:1px solid var(--border);background:var(--accent)}
+  .sidebar-logo-row{display:flex;align-items:center;gap:10px}
+  .sidebar-icon{width:40px;height:40px;border-radius:11px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .sidebar-title{font-size:18px;font-weight:700;letter-spacing:-0.4px;color:#fff}
+  .sidebar-sub{font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px}
+  .sidebar-nav{padding:16px 12px;flex:1}
+  .sidebar-btn{width:100%;display:flex;align-items:center;gap:12px;padding:11px 14px;border:none;background:none;color:var(--text2);font-family:var(--font);font-size:14px;font-weight:500;cursor:pointer;border-radius:var(--rsm);transition:all 0.15s;text-align:left;margin-bottom:2px}
+  .sidebar-btn svg{width:20px;height:20px;stroke-width:1.7;flex-shrink:0}
+  .sidebar-btn:hover{background:var(--surface2);color:var(--text)}
+  .sidebar-btn.active{background:var(--accent-l);color:var(--accent)}
+  .sidebar-sync{padding:16px;border-top:1px solid var(--border);margin-top:auto}
+  .main-content{margin-left:var(--sidebar-w);flex:1;min-height:100vh;overflow-y:auto}
+  .screen{display:none;padding:32px 36px 48px;max-width:900px}
+  .screen.active{display:block}
+  .mg{grid-template-columns:repeat(4,1fr)!important}
+  .modal{border-radius:var(--r);max-width:560px;width:90%;max-height:85vh}
+  .modal-bg{align-items:center}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar" id="sidebar" style="display:none">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-row">
+      <div class="sidebar-icon"><svg width="26" height="26" viewBox="0 0 56 56" fill="none"><path d="M28 28 C32 22 36 18 36 14 C36 8 28 6 22 10 C16 14 14 22 18 30 C22 38 32 40 40 36 C48 30 50 18 44 10" stroke="#fff" stroke-width="3.8" stroke-linecap="round" fill="none"/><circle cx="44" cy="10" r="5.5" fill="#fff"/><circle cx="44" cy="10" r="2.5" fill="#3aafa9"/></svg></div>
+      <div><div class="sidebar-title">Engram</div><div class="sidebar-sub">脳神経外科 学習アプリ</div></div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <button class="sidebar-btn active" id="sb-home" onclick="switchTab('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>ホーム</button>
+    <button class="sidebar-btn" id="sb-quiz" onclick="switchTab('quiz')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>問題を解く</button>
+    <button class="sidebar-btn" id="sb-add" onclick="switchTab('add')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>問題を追加</button>
+    <button class="sidebar-btn" id="sb-manage" onclick="switchTab('manage')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>問題一覧</button>
+    <button class="sidebar-btn" id="sb-stats" onclick="switchTab('stats')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>統計</button>
+  </nav>
+  <div class="sidebar-sync"><div class="sync-row" style="padding:0"><div class="sdot" id="sdot-d"></div><span id="stext-d" style="font-size:12px;color:var(--text3)"></span></div></div>
+</aside>
+<div class="main-content" id="main-content">
+<div class="mobile-header">
+  <div class="mobile-logo-icon"><svg width="20" height="20" viewBox="0 0 56 56" fill="none"><path d="M28 28 C32 22 36 18 36 14 C36 8 28 6 22 10 C16 14 14 22 18 30 C22 38 32 40 40 36 C48 30 50 18 44 10" stroke="#fff" stroke-width="3.8" stroke-linecap="round" fill="none"/><circle cx="44" cy="10" r="5.5" fill="#fff"/><circle cx="44" cy="10" r="2.5" fill="#3aafa9"/></svg></div>
+  <div class="mobile-logo-text">Engram</div>
+</div>
+
+<!-- HOME -->
+<div id="s-home" class="screen active">
+  <div style="padding:18px 0 4px"><div style="font-size:22px;font-weight:700">ホーム</div></div>
+  <div class="sync-row"><div class="sdot" id="sdot"></div><span id="stext">読み込み中...</span></div>
+  <div class="mg">
+    <div class="metric"><div class="ml">登録問題数</div><div class="mv ac" id="h-tot">0</div></div>
+    <div class="metric"><div class="ml">今日の復習</div><div class="mv gr" id="h-due">0</div><div class="mv-sub">件期限切れ</div></div>
+    <div class="metric"><div class="ml">連続学習</div><div class="mv am" id="h-str">0</div><div class="mv-sub">日連続</div></div>
+    <div class="metric"><div class="ml">全体正答率</div><div class="mv bl" id="h-rate">—</div></div>
+  </div>
+  <div class="card"><div class="sec">カテゴリー別</div><div id="cat-st"></div></div>
+</div>
+
+<!-- QUIZ -->
+<div id="s-quiz" class="screen">
+  <div style="padding:18px 0 4px"><div style="font-size:22px;font-weight:700">問題を解く</div></div>
+  <div id="q-setup" style="padding-top:8px">
+    <div class="due-ban" id="due-ban" style="display:none">
+      <div><div style="font-size:30px;font-weight:700;font-family:var(--mono);color:var(--accent)" id="due-num">0</div><div style="font-size:12px;color:var(--text2);margin-top:3px">件 今日の復習あり</div></div>
+      <button class="btn pr sm" onclick="startReview()">今すぐ復習</button>
+    </div>
+    <div class="missed-banner" id="missed-ban" style="display:none">
+      <div><span style="font-size:14px;font-weight:600;color:var(--red)">前回の不正解</span><div style="font-size:12px;color:var(--text2);margin-top:2px"><span id="missed-num">0</span>問 復習しよう</div></div>
+      <button class="btn sm" style="color:var(--red);border-color:rgba(224,92,92,0.35)" onclick="startMissed()">再挑戦</button>
+    </div>
+    <div class="card">
+      <div class="fg"><label class="fl">カテゴリー</label><select class="fi" id="qz-cat"><option value="all">すべて</option></select></div>
+      <div class="fg"><label class="fl">出題モード</label>
+        <select class="fi" id="qz-mode">
+          <option value="due">復習期限の問題のみ</option>
+          <option value="all">全問（ランダム）</option>
+          <option value="weak">苦手順</option>
+          <option value="new">新規のみ</option>
+        </select></div>
+      <button class="btn pr fu" onclick="startQuiz()">スタート</button>
+    </div>
+  </div>
+  <div id="q-main" style="display:none;padding-top:8px">
+    <div class="quiz-progress">
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn gh sm" id="q-prev-btn" onclick="prevQ()" style="padding:5px 8px;color:var(--text3);font-size:18px;display:none">←</button>
+        <span style="font-size:12px;font-family:var(--mono);color:var(--text2)" id="q-prog"></span>
+      </div>
+      <button class="btn gh sm" onclick="endQuiz()">終了</button>
+    </div>
+    <div class="pb" style="margin-bottom:14px"><div class="pf ac" id="q-bar" style="width:0%"></div></div>
+    <div id="q-mcq-view">
+      <div class="qcard">
+        <div class="qmeta" style="justify-content:space-between">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="badge bac" id="q-cb"></span><span class="badge bpu" id="q-type-b" style="display:none">暗記カード</span><span style="font-size:12px;color:var(--text3);font-family:var(--mono)" id="q-yr"></span><span class="badge bgray" id="q-ivb" style="display:none"></span></div>
+          <div style="display:flex;gap:4px;align-items:center;flex-shrink:0">
+            <button class="btn gh sm" id="quiz-edit-btn" style="padding:5px;color:var(--text3)" onclick="openEditFromQuiz()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            <button class="btn gh sm" style="padding:5px;color:var(--red)" onclick="deleteFromQuiz()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>
+          </div>
+        </div>
+        <div class="qt" id="q-tx"></div>
+      </div>
+      <div id="q-ch"></div>
+      <div id="q-fb" style="display:none"></div>
+    </div>
+    <div id="q-fc-view" style="display:none">
+      <div class="qmeta" style="padding:0 0 10px;justify-content:space-between">
+        <div style="display:flex;gap:8px;align-items:center"><span class="badge bac" id="fc-cb"></span><span class="badge bpu">暗記カード</span><span style="font-size:12px;color:var(--text3);font-family:var(--mono)" id="fc-yr"></span></div>
+        <div style="display:flex;gap:4px;align-items:center;flex-shrink:0">
+          <button class="btn gh sm" style="padding:5px;color:var(--text3)" onclick="openEditFromQuiz()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          <button class="btn gh sm" style="padding:5px;color:var(--red)" onclick="deleteFromQuiz()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>
+        </div>
+      </div>
+      <div class="fc-wrap" onclick="flipCard()">
+        <div class="fc" id="fc-card">
+          <div class="fc-front"><div class="fc-label">表面</div><div class="fc-term" id="fc-front-text"></div><div class="fc-hint">タップして裏面を確認</div></div>
+          <div class="fc-back"><div class="fc-label">裏面</div><div class="fc-def" id="fc-back-text"></div><img id="fc-back-img" style="max-width:100%;border-radius:8px;margin-top:10px;display:none"></div>
+        </div>
+        <div class="fc-spacer"></div>
+      </div>
+      <div id="fc-memo" style="display:none" class="fb cor"></div>
+      <div id="fc-front-reveal" style="display:none;margin-top:8px">
+        <button id="fc-reveal-btn" class="btn fu" style="color:var(--accent);border-color:var(--accent);background:transparent" onclick="toggleFrontReveal()">表面を確認する</button>
+        <div id="fc-front-reveal-text" style="display:none;background:var(--surface);border:1.5px solid var(--accent);border-radius:var(--rsm);padding:14px 16px;margin-top:8px;font-size:14px;line-height:1.7;color:var(--text);white-space:pre-wrap;text-align:left"></div>
+      </div>
+    </div>
+    <div class="rbtns" id="rbtns" style="display:none;grid-template-columns:repeat(5,1fr)">
+      <button class="rb" onclick="reviewToday()" style="border-color:rgba(124,92,191,0.35);color:var(--purple)"><span class="rb-l">今日</span><span class="rb-i">再復習</span></button>
+      <button class="rb ag" onclick="rate(0)"><span class="rb-l">もう一度</span><span class="rb-i" id="ri0"></span></button>
+      <button class="rb hd" onclick="rate(1)"><span class="rb-l">難しい</span><span class="rb-i" id="ri1"></span></button>
+      <button class="rb gd" onclick="rate(2)"><span class="rb-l">普通</span><span class="rb-i" id="ri2"></span></button>
+      <button class="rb ez" onclick="rate(3)"><span class="rb-l">簡単</span><span class="rb-i" id="ri3"></span></button>
+    </div>
+  </div>
+  <div id="q-res" style="display:none;padding-top:8px">
+    <div class="rc">
+      <div style="font-size:28px;margin-bottom:4px" id="r-em"></div>
+      <div class="rpct" id="r-pct"></div>
+      <div class="rmsg" id="r-msg"></div>
+      <div class="rmsg" id="r-dt" style="margin-top:4px"></div>
+      <div id="r-missed-info" style="margin-top:12px;font-size:13px;color:var(--red)"></div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn fu" onclick="showSetup()">もう一度</button>
+      <button class="btn pr fu" onclick="switchTab('home')">ホームへ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD -->
+<div id="s-add" class="screen">
+  <div style="padding:18px 0 4px"><div style="font-size:22px;font-weight:700">問題を追加</div></div>
+  <div style="padding-top:8px">
+    <div class="type-toggle">
+      <button class="type-btn active" id="add-type-mcq" onclick="setAddType('mcq')">択一問題</button>
+      <button class="type-btn" id="add-type-fc" onclick="setAddType('fc')">暗記カード</button>
+    </div>
+    <div class="card" style="padding:20px">
+      <div class="fr2" style="margin-bottom:14px">
+        <div class="fg" style="margin:0"><label class="fl">カテゴリー *</label><input class="fi" type="text" id="a-cat" placeholder="例：脳血管" list="catdl"><datalist id="catdl"></datalist></div>
+        <div class="fg" style="margin:0"><label class="fl">年度</label><input class="fi" type="text" id="a-yr" placeholder="2021"></div>
+      </div>
+      <div id="add-mcq-fields">
+        <div class="fg"><label class="fl">問題文 *</label><textarea class="fi" id="a-q" placeholder="問題文を入力..."></textarea></div>
+        <div class="fg"><label class="fl">選択肢 a *</label><input class="fi" type="text" id="a-a"></div>
+        <div class="fg"><label class="fl">選択肢 b</label><input class="fi" type="text" id="a-b"></div>
+        <div class="fg"><label class="fl">選択肢 c</label><input class="fi" type="text" id="a-c"></div>
+        <div class="fg"><label class="fl">選択肢 d</label><input class="fi" type="text" id="a-d"></div>
+        <div class="fg"><label class="fl">選択肢 e</label><input class="fi" type="text" id="a-e"></div>
+        <div class="fg"><label class="fl">正解 *（複数可）</label>
+          <div class="cgrp" id="achk">
+            <label class="cl"><input type="checkbox" value="a"> a</label>
+            <label class="cl"><input type="checkbox" value="b"> b</label>
+            <label class="cl"><input type="checkbox" value="c"> c</label>
+            <label class="cl"><input type="checkbox" value="d"> d</label>
+            <label class="cl"><input type="checkbox" value="e"> e</label>
+          </div>
+        </div>
+      </div>
+      <div id="add-fc-fields" style="display:none">
+        <div class="fg"><label class="fl">表面（用語・概念）*</label><textarea class="fi" id="a-front" placeholder="例：Triple anterior cerebral artery"></textarea></div>
+        <div class="fg"><label class="fl">裏面（説明・定義）*</label><textarea class="fi" id="a-back" placeholder="説明を入力..."></textarea></div>
+        <div class="fg">
+          <label class="fl">裏面に画像を追加（任意）</label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 14px;background:var(--surface2);border-radius:var(--rsm);border:1.5px dashed var(--border2)">
+            <input type="file" id="a-image" accept="image/*" style="display:none" onchange="previewImage(this,'a-image-preview')">
+            <span style="font-size:20px">🖼️</span>
+            <span style="font-size:13px;color:var(--text2)">画像を選択またはスクリーンショットを貼り付け</span>
+          </label>
+          <div id="a-image-preview" style="display:none;margin-top:8px;position:relative">
+            <img id="a-image-preview-img" style="max-width:100%;border-radius:var(--rsm);border:1px solid var(--border)">
+            <button onclick="clearImage('a-image','a-image-preview')" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:14px">×</button>
+          </div>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">解説・メモ（任意）</label><textarea class="fi" id="a-mem" placeholder="補足説明..."></textarea></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn pr fu" onclick="addQ(false)">登録する</button>
+        <button class="btn pr2 fu" onclick="addQ(true)">続けて追加</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGE -->
+<div id="s-manage" class="screen">
+  <div style="padding:18px 0 4px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:22px;font-weight:700" id="manage-title">問題一覧</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn sm" onclick="doExportJSON()" style="font-size:12px;padding:7px 10px">JSON出力</button>
+        <button class="btn dn sm" onclick="resetAll()" style="font-size:12px;padding:7px 10px">リセット</button>
+      </div>
+    </div>
+  </div>
+  <label class="import-zone" id="import-label">
+    <input type="file" id="import-file" accept=".json">
+    <div style="font-size:24px;margin-bottom:6px">📥</div>
+    <div style="font-size:13px;font-weight:600;color:var(--accent)">クリックしてJSONをインポート</div>
+    <div style="font-size:11px;color:var(--text2);margin-top:3px">またはここにドロップ</div>
+  </label>
+  <div id="folder-view">
+    <input class="fi" type="text" id="folder-search" placeholder="🔍 キーワードで問題を検索..." oninput="searchAllQ()" style="margin-bottom:10px">
+    <div id="folder-search-results" style="display:none">
+      <div class="card" style="padding:8px 16px"><div id="search-qlist"></div></div>
+    </div>
+    <div id="folder-grid-wrap">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="folder-grid"></div>
+    </div>
+  </div>
+  <div id="qlist-view" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <button class="btn gh sm" onclick="backToFolders()" style="padding:6px 0;color:var(--accent)">← 一覧に戻る</button>
+      <div style="display:flex;gap:6px;align-items:center">
+        <select class="fi" id="f-type" style="width:100px" onchange="renderQList()">
+          <option value="all">全種別</option><option value="mcq">択一</option><option value="fc">暗記</option>
+        </select>
+        <button class="btn sm" onclick="toggleSelectMode()" id="select-mode-btn" style="font-size:12px;padding:7px 10px">選択</button>
+      </div>
+    </div>
+    <input class="fi" type="text" id="q-search" placeholder="🔍 このカテゴリー内を検索..." oninput="renderQList()" style="margin-bottom:10px">
+    <!-- 一括削除バー -->
+    <div id="bulk-bar" style="display:none;background:var(--red-l);border:1px solid rgba(224,92,92,0.2);border-radius:var(--rsm);padding:10px 14px;margin-bottom:10px;display:none;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:center;gap:10px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+          <input type="checkbox" id="select-all-cb" onchange="toggleSelectAll(this.checked)"> すべて選択
+        </label>
+        <span id="selected-count" style="font-size:13px;color:var(--text2)">0件選択中</span>
+      </div>
+      <button class="btn dn sm" onclick="bulkDelete()" style="font-size:12px;padding:7px 12px">削除</button>
+    </div>
+    <div class="card" style="padding:8px 16px"><div id="qlist"></div></div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div id="s-stats" class="screen">
+  <div style="padding:18px 0 4px"><div style="font-size:22px;font-weight:700">統計</div></div>
+  <div class="mg" style="margin-top:8px">
+    <div class="metric"><div class="ml">総解答数</div><div class="mv ac" id="st-ta">0</div></div>
+    <div class="metric"><div class="ml">連続学習日数</div><div class="mv am" id="st-str">0<span style="font-size:14px"> 日</span></div></div>
+    <div class="metric"><div class="ml">今日の解答</div><div class="mv gr" id="st-td">0</div></div>
+    <div class="metric"><div class="ml">習熟済み</div><div class="mv bl" id="st-mt">0</div></div>
+  </div>
+
+  <!-- 習熟完了予測 -->
+  <div class="predict-card" id="predict-card">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:4px">習熟完了まで</div>
+    <div class="predict-days" id="predict-days">—</div>
+    <div style="font-size:12px;color:var(--text2);margin-top:4px" id="predict-date"></div>
+  </div>
+
+  <!-- 週ごとの学習量グラフ -->
+  <div class="stat-card">
+    <div class="stat-title">週ごとの学習量</div>
+    <div class="chart-wrap"><canvas id="weekly-chart"></canvas></div>
+  </div>
+
+  <!-- 正答率トレンド -->
+  <div class="stat-card">
+    <div class="stat-title">正答率トレンド（週別）</div>
+    <div class="chart-wrap"><canvas id="trend-chart"></canvas></div>
+  </div>
+
+  <!-- 習熟度ドーナツ -->
+  <div class="stat-card">
+    <div class="stat-title">習熟度分布</div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="position:relative;width:140px;height:140px;flex-shrink:0"><canvas id="donut-chart"></canvas></div>
+      <div id="donut-legend" style="flex:1"></div>
+    </div>
+  </div>
+
+  <!-- カテゴリー別レーダー -->
+  <div class="stat-card">
+    <div class="stat-title">カテゴリー別正答率</div>
+    <div class="chart-wrap" style="height:240px"><canvas id="radar-chart"></canvas></div>
+  </div>
+
+  <!-- ヒートマップ -->
+  <div class="stat-card">
+    <div class="stat-title">過去26週の学習</div>
+    <div class="hm" id="heatmap"></div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3)"><span>26週前</span><span>今日</span></div>
+  </div>
+
+  <!-- 問題の状態 -->
+  <div class="stat-card"><div class="stat-title">問題の状態</div><div id="dist"></div></div>
+  <div class="stat-card"><div class="stat-title">カテゴリー別習熟度</div><div id="cat-mas"></div></div>
+</div>
+
+</div></div>
+
+<nav class="bottom-nav" id="bottom-nav">
+  <button class="nav-btn active" id="tab-home" onclick="switchTab('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>ホーム<div class="nav-dot"></div></button>
+  <button class="nav-btn" id="tab-quiz" onclick="switchTab('quiz')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>演習<div class="nav-dot"></div></button>
+  <button class="nav-btn" id="tab-add" onclick="switchTab('add')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>追加<div class="nav-dot"></div></button>
+  <button class="nav-btn" id="tab-manage" onclick="switchTab('manage')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>一覧<div class="nav-dot"></div></button>
+  <button class="nav-btn" id="tab-stats" onclick="switchTab('stats')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>統計<div class="nav-dot"></div></button>
+</nav>
+
+<div class="modal-bg" id="edit-modal" style="display:none" onclick="if(event.target===this)closeEditModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeEditModal()">×</button>
+    <div class="modal-title">問題を編集</div>
+    <input type="hidden" id="edit-id">
+    <div class="fr2" style="margin-bottom:14px">
+      <div class="fg" style="margin:0"><label class="fl">カテゴリー *</label><input class="fi" type="text" id="edit-cat" list="catdl2"><datalist id="catdl2"></datalist></div>
+      <div class="fg" style="margin:0"><label class="fl">年度</label><input class="fi" type="text" id="edit-yr"></div>
+    </div>
+    <div id="edit-mcq-fields">
+      <div class="fg"><label class="fl">問題文 *</label><textarea class="fi" id="edit-q"></textarea></div>
+      <div class="fg"><label class="fl">選択肢 a</label><input class="fi" type="text" id="edit-a"></div>
+      <div class="fg"><label class="fl">選択肢 b</label><input class="fi" type="text" id="edit-b"></div>
+      <div class="fg"><label class="fl">選択肢 c</label><input class="fi" type="text" id="edit-c"></div>
+      <div class="fg"><label class="fl">選択肢 d</label><input class="fi" type="text" id="edit-d"></div>
+      <div class="fg"><label class="fl">選択肢 e</label><input class="fi" type="text" id="edit-e"></div>
+      <div class="fg"><label class="fl">正解（複数可）</label>
+        <div class="cgrp" id="edit-achk">
+          <label class="cl"><input type="checkbox" value="a"> a</label>
+          <label class="cl"><input type="checkbox" value="b"> b</label>
+          <label class="cl"><input type="checkbox" value="c"> c</label>
+          <label class="cl"><input type="checkbox" value="d"> d</label>
+          <label class="cl"><input type="checkbox" value="e"> e</label>
+        </div>
+      </div>
+    </div>
+    <div id="edit-fc-fields" style="display:none">
+      <div class="fg">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <label class="fl" style="margin:0">表面 *</label>
+          <button type="button" class="btn gh sm" style="font-size:12px;padding:3px 8px;color:var(--accent)" onclick="toggleFrontPreview()">プレビュー表示</button>
+        </div>
+        <div id="front-preview" style="display:none;background:var(--accent-l);border:1.5px solid var(--accent);border-radius:var(--rsm);padding:12px 14px;font-size:14px;line-height:1.7;color:var(--text);margin-bottom:8px;white-space:pre-wrap"></div>
+        <textarea class="fi" id="edit-front" oninput="updateFrontPreview()"></textarea>
+      </div>
+      <div class="fg"><label class="fl">裏面 *</label><textarea class="fi" id="edit-back" style="min-height:160px"></textarea></div>
+      <div class="fg">
+        <label class="fl">裏面の画像</label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 14px;background:var(--surface2);border-radius:var(--rsm);border:1.5px dashed var(--border2)">
+          <input type="file" id="edit-image" accept="image/*" style="display:none" onchange="previewImage(this,'edit-image-preview')">
+          <span style="font-size:20px">🖼️</span>
+          <span style="font-size:13px;color:var(--text2)">画像を変更する</span>
+        </label>
+        <div id="edit-image-preview" style="margin-top:8px;position:relative">
+          <img id="edit-image-preview-img" style="max-width:100%;border-radius:var(--rsm);border:1px solid var(--border);display:none">
+          <button id="edit-image-clear" onclick="clearImage('edit-image','edit-image-preview')" style="display:none;position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:14px">×</button>
+        </div>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">解説・メモ</label><textarea class="fi" id="edit-mem"></textarea></div>
+    <button class="btn pr fu" onclick="saveEdit()">保存する</button>
+  </div>
+</div>
+<!-- カテゴリー編集モーダル -->
+<div class="modal-bg" id="cat-modal" style="display:none" onclick="if(event.target===this)closeCatModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeCatModal()">×</button>
+    <div class="modal-title" id="cat-modal-title">カテゴリーを編集</div>
+    <input type="hidden" id="cat-edit-old">
+    <div class="fg">
+      <label class="fl">新しいカテゴリー名</label>
+      <input class="fi" type="text" id="cat-edit-new" placeholder="新しい名前を入力">
+    </div>
+    <div class="fg">
+      <label class="fl">または別のカテゴリーに統合</label>
+      <select class="fi" id="cat-merge-target">
+        <option value="">統合しない</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn pr fu" onclick="saveCatEdit()">変更する</button>
+      <button class="btn dn sm" onclick="deleteCat()" style="white-space:nowrap">カテゴリーを削除</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- カテゴリー編集モーダル -->
+<div class="modal-bg" id="cat-edit-modal" style="display:none" onclick="if(event.target===this)closeCatEdit()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeCatEdit()">×</button>
+    <div class="modal-title">カテゴリーを編集</div>
+    <div class="fg">
+      <label class="fl">対象カテゴリー</label>
+      <select class="fi" id="cat-edit-from" onchange="updateCatEditTo()"></select>
+    </div>
+    <div class="fg">
+      <label class="fl">新しい名前（変更・統合先）</label>
+      <input class="fi" type="text" id="cat-edit-to" placeholder="新しいカテゴリー名" list="catdl">
+    </div>
+    <div style="background:var(--amber-l);border:1px solid rgba(224,155,58,0.3);border-radius:var(--rsm);padding:10px 14px;font-size:12px;color:var(--amber);margin-bottom:14px">
+      ⚠️ 対象カテゴリーの全問題が新しい名前に変更されます
+    </div>
+    <button class="btn pr fu" onclick="applyCatEdit()">変更する</button>
+  </div>
+</div>
+
+<script>
+var questions=[],activity={},missedIds=[];
+var charts={};
+var FS_BASE='https://firestore.googleapis.com/v1/projects/engram-a79d0/databases/(default)/documents';
+var AK='AIzaSyBHt46cutBi6hnjLCUD8S_Z7XLxDMUO93o';
+
+// 1問1ドキュメント方式
+function qToFields(q){
+  var fields={
+    id:{stringValue:String(q.id)},
+    type:{stringValue:q.type||'mcq'},
+    cat:{stringValue:q.cat||''},
+    year:{stringValue:q.year||''},
+    memo:{stringValue:q.memo||''},
+    attempts:{integerValue:String(q.attempts||0)},
+    correct:{integerValue:String(q.correct||0)},
+    sr:{stringValue:JSON.stringify(q.sr||null)},
+    image:{stringValue:q.image||''}
+  };
+  if(q.type==='fc'){
+    fields.front={stringValue:q.front||''};
+    fields.back={stringValue:q.back||''};
+  } else {
+    fields.q={stringValue:q.q||''};
+    fields.choices={stringValue:JSON.stringify(q.choices||{})};
+    fields.answers={stringValue:JSON.stringify(q.answers||[])};
+  }
+  return {fields:fields};
+}
+
+function fieldsToQ(fields){
+  if(!fields)return null;
+  var q={
+    id:+fields.id.stringValue,
+    type:fields.type.stringValue,
+    cat:fields.cat.stringValue,
+    year:fields.year.stringValue,
+    memo:fields.memo.stringValue,
+    attempts:+(fields.attempts&&fields.attempts.integerValue||0),
+    correct:+(fields.correct&&fields.correct.integerValue||0),
+    sr:JSON.parse(fields.sr&&fields.sr.stringValue||'null'),
+    image:fields.image&&fields.image.stringValue||''
+  };
+  if(q.type==='fc'){
+    q.front=fields.front&&fields.front.stringValue||'';
+    q.back=fields.back&&fields.back.stringValue||'';
+  } else {
+    q.q=fields.q&&fields.q.stringValue||'';
+    q.choices=JSON.parse(fields.choices&&fields.choices.stringValue||'{}');
+    q.answers=JSON.parse(fields.answers&&fields.answers.stringValue||'[]');
+  }
+  return q;
+}
+
+function saveQ(q){
+  var docId='q_'+q.id;
+  return fetch(FS_BASE+'/cards/'+docId+'?key='+AK,{
+    method:'PATCH',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(qToFields(q))
+  });
+}
+
+function deleteQFromFS(id){
+  var docId='q_'+id;
+  return fetch(FS_BASE+'/cards/'+docId+'?key='+AK,{method:'DELETE'});
+}
+
+function saveActivity(){
+  return fetch(FS_BASE+'/meta/activity?key='+AK,{
+    method:'PATCH',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({fields:{data:{stringValue:JSON.stringify(activity)}}})
+  });
+}
+
+function saveData(){
+  setSS('sg','保存中...');
+  // 全問保存（変更があったものだけ保存するのが理想だが、シンプルに全部）
+  var saves=questions.map(saveQ);
+  saves.push(saveActivity());
+  Promise.all(saves)
+    .then(function(){setSS('sy',questions.length+'問 保存済み');})
+    .catch(function(){setSS('','保存失敗');});
+  try{localStorage.setItem('engram_q',JSON.stringify(questions));localStorage.setItem('engram_a',JSON.stringify(activity));}catch(e){}
+}
+
+function saveOneQ(q){
+  // 1問だけ保存（演習中など）
+  saveQ(q).catch(function(){});
+  saveActivity().catch(function(){});
+  try{localStorage.setItem('engram_q',JSON.stringify(questions));localStorage.setItem('engram_a',JSON.stringify(activity));}catch(e){}
+}
+
+function loadData(){
+  setSS('sg','同期中...');
+  try{var q=localStorage.getItem('engram_q');var a=localStorage.getItem('engram_a');if(q)questions=JSON.parse(q);if(a)activity=JSON.parse(a);}catch(e){}
+  initLayout();updateAll();
+  // Firestoreから全カードを取得
+  Promise.all([
+    fetch(FS_BASE+'/cards?key='+AK),
+    fetch(FS_BASE+'/meta/activity?key='+AK)
+  ]).then(function(res){return Promise.all(res.map(function(r){return r.json();}));})
+  .then(function(data){
+    var docs=data[0].documents||[];
+    questions=docs.map(function(d){return fieldsToQ(d.fields);}).filter(Boolean);
+    questions.sort(function(a,b){return a.id-b.id;});
+    if(data[1].fields&&data[1].fields.data)activity=JSON.parse(data[1].fields.data.stringValue);
+    setSS('sy',questions.length+'問 同期済み');
+    updateAll();
+    try{localStorage.setItem('engram_q',JSON.stringify(questions));localStorage.setItem('engram_a',JSON.stringify(activity));}catch(e){}
+  }).catch(function(){setSS('sy',questions.length+'問 (オフライン)');});
+}
+
+function setSS(st,tx){
+  ['sdot','sdot-d'].forEach(function(id){var d=document.getElementById(id);if(d)d.className='sdot'+(st==='sy'?' sy':st==='sg'?' sg':'');});
+  ['stext','stext-d'].forEach(function(id){var t=document.getElementById(id);if(t)t.textContent=tx;});
+}
+
+var DAYS=86400000;
+function today(){return Math.floor(Date.now()/DAYS);}
+function sm2(card,r){var sr=card.sr||{};var interval=sr.interval||0;var ease=sr.ease||2.5;var reps=sr.reps||0;if(r===0){interval=1;reps=0;}else if(r===1){interval=Math.max(1,Math.round(interval*1.2));ease=Math.max(1.3,ease-0.15);reps++;}else if(r===2){interval=reps===0?1:reps===1?3:Math.round(interval*ease);reps++;}else{interval=reps===0?3:reps===1?5:Math.round(interval*ease*1.3);ease=Math.min(3.5,ease+0.15);reps++;} return{interval:Math.min(interval,365),ease:+(ease.toFixed(2)),reps:reps,due:today()+interval,lastRated:today()};}
+function itText(card,r){var d=sm2({sr:card.sr||{}},r).interval;return d<=1?'明日':d<7?d+'日後':d<30?Math.round(d/7)+'週後':d<365?Math.round(d/30)+'ヶ月後':Math.round(d/365)+'年後';}
+function isDue(q){return((q.sr&&q.sr.due)||0)<=today();}
+function cats(){return[...new Set(questions.map(function(q){return q.cat;}).filter(Boolean))].sort();}
+function dueCount(){return questions.filter(isDue).length;}
+function matureCount(){return questions.filter(function(q){return(q.sr&&q.sr.interval||0)>=21;}).length;}
+function todayCount(){return activity[today()]||0;}
+function streak(){var s=0,d=today();while(true){if(activity[d]){s++;d--;}else if(s>0)break;else{d--;if(today()-d>400)break;}}return s;}
+
+function initLayout(){
+  if(window.innerWidth>=768){document.getElementById('sidebar').style.cssText='display:flex;flex-direction:column';document.getElementById('bottom-nav').style.display='none';document.getElementById('main-content').style.marginLeft='var(--sidebar-w)';}
+}
+window.addEventListener('resize',function(){if(window.innerWidth>=768){document.getElementById('sidebar').style.cssText='display:flex;flex-direction:column';document.getElementById('bottom-nav').style.display='none';document.getElementById('main-content').style.marginLeft='var(--sidebar-w)';}else{document.getElementById('sidebar').style.display='none';document.getElementById('bottom-nav').style.display='flex';document.getElementById('main-content').style.marginLeft='0';}});
+
+function updateAll(){updateHome();updateDropdowns();renderManage();updateDueBanner();}
+
+function updateHome(){
+  var att=questions.reduce(function(s,q){return s+(q.attempts||0);},0);var cor=questions.reduce(function(s,q){return s+(q.correct||0);},0);
+  document.getElementById('h-tot').textContent=questions.length;document.getElementById('h-due').textContent=dueCount();document.getElementById('h-str').textContent=streak();document.getElementById('h-rate').textContent=att>0?Math.round(cor/att*100)+'%':'—';
+  var el=document.getElementById('cat-st');var cs=cats();
+  if(!cs.length){el.innerHTML='<div class="empty">まだ問題がありません</div>';return;}
+  el.innerHTML=cs.map(function(c){var qs=questions.filter(function(q){return q.cat===c;});var a=qs.reduce(function(s,q){return s+(q.attempts||0);},0);var r=qs.reduce(function(s,q){return s+(q.correct||0);},0);var pct=a>0?Math.round(r/a*100):null;var due=qs.filter(isDue).length;var bc=pct===null?'':pct>=70?'gr':pct>=50?'am':'rd';return'<div class="cat-item"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:'+(pct!==null?'7px':'0')+'"><span style="font-size:14px;font-weight:500">'+c+'</span><div style="display:flex;gap:6px;align-items:center">'+(due>0?'<span class="badge bac" style="font-size:10px">'+due+'件</span>':'')+'<span style="font-size:13px;font-family:var(--mono);color:var(--text2)">'+qs.length+'問 '+(pct!==null?pct+'%':'未挑戦')+'</span></div></div>'+(pct!==null?'<div class="pb"><div class="pf '+bc+'" style="width:'+pct+'%"></div></div>':'')+'</div>';}).join('');
+}
+
+function updateDropdowns(){var cs=cats();var opts=cs.map(function(c){return'<option value="'+c+'">'+c+'</option>';}).join('');var dl=cs.map(function(c){return'<option value="'+c+'">';}).join('');['qz-cat'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="all">すべて</option>'+opts;});['catdl','catdl2'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML=dl;});}
+
+function updateDueBanner(){var due=dueCount();var ban=document.getElementById('due-ban');if(!ban)return;ban.style.display=due>0?'flex':'none';var num=document.getElementById('due-num');if(num)num.textContent=due;var mb=document.getElementById('missed-ban');if(mb){mb.style.display=missedIds.length>0?'flex':'none';var mn=document.getElementById('missed-num');if(mn)mn.textContent=missedIds.length;}}
+
+function switchTab(n){
+  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});document.querySelectorAll('.sidebar-btn').forEach(function(b){b.classList.remove('active');});document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  var tb=document.getElementById('tab-'+n);if(tb)tb.classList.add('active');var sb=document.getElementById('sb-'+n);if(sb)sb.classList.add('active');document.getElementById('s-'+n).classList.add('active');
+  if(n==='home')updateHome();
+  if(n==='manage'){var fs=document.getElementById('folder-search');if(fs)fs.value='';renderManage();}
+  if(n==='stats')updateStats();if(n==='quiz')updateDueBanner();
+}
+
+var addType='mcq';
+function clearAddForm(keepCat,savedCat){
+  ['a-q','a-a','a-b','a-c','a-d','a-e','a-mem','a-front','a-back'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  if(!keepCat){document.getElementById('a-yr').value='';document.getElementById('a-cat').value='';}
+  else if(savedCat)document.getElementById('a-cat').value=savedCat;
+  document.querySelectorAll('#achk input').forEach(function(i){i.checked=false;});
+  document.querySelectorAll('#achk .cl').forEach(function(l){l.classList.remove('on');});
+  clearImage('a-image','a-image-preview');
+}
+function setAddType(t){addType=t;document.getElementById('add-type-mcq').classList.toggle('active',t==='mcq');document.getElementById('add-type-fc').classList.toggle('active',t==='fc');document.getElementById('add-mcq-fields').style.display=t==='mcq'?'block':'none';document.getElementById('add-fc-fields').style.display=t==='fc'?'block':'none';}
+
+function addQ(keepCat){
+  var cat=document.getElementById('a-cat').value.trim();var yr=document.getElementById('a-yr').value.trim();var memo=document.getElementById('a-mem').value.trim();
+  if(!cat){showToast('カテゴリーは必須','error');return;}
+  if(addType==='mcq'){var q=document.getElementById('a-q').value.trim();var ch={a:document.getElementById('a-a').value.trim(),b:document.getElementById('a-b').value.trim(),c:document.getElementById('a-c').value.trim(),d:document.getElementById('a-d').value.trim(),e:document.getElementById('a-e').value.trim()};var ans=[...document.querySelectorAll('#achk input:checked')].map(function(i){return i.value;});if(!q||!ch.a||!ans.length){showToast('問題文・選択肢a・正解は必須','error');return;}questions.push({id:Date.now(),type:'mcq',cat:cat,year:yr,q:q,choices:ch,answers:ans,memo:memo,attempts:0,correct:0,sr:null,image:''});}
+  else{var front=document.getElementById('a-front').value.trim();var back=document.getElementById('a-back').value.trim();if(!front||!back){showToast('表面と裏面は必須','error');return;}questions.push({id:Date.now(),type:'fc',cat:cat,year:yr,front:front,back:back,memo:memo,attempts:0,correct:0,sr:null});}
+  saveData();updateAll();
+  var savedCat=cat;
+  clearAddForm(keepCat,savedCat);
+  if(!keepCat)showToast('登録しました！','success');else showToast('登録しました！続けて追加できます','success');
+}
+
+var currentCat=null;var catEmojis=['🧠','🔬','🦴','⚡','👶','🚑','📚','🏥','💊','🔭'];
+function renderManage(){
+  currentCat=null;
+  document.getElementById('folder-view').style.display='block';
+  document.getElementById('qlist-view').style.display='none';
+  document.getElementById('manage-title').textContent='問題一覧';
+  var fs=document.getElementById('folder-search');if(fs)fs.value='';
+  var fr=document.getElementById('folder-search-results');if(fr)fr.style.display='none';
+  var fw=document.getElementById('folder-grid-wrap');if(fw)fw.style.display='block';
+  renderFolders();
+}
+function renderFolders(){
+  var cs=cats();window._cats=cs;var grid=document.getElementById('folder-grid');
+  if(!cs.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1">まだ問題がありません</div>';return;}
+  grid.innerHTML=cs.map(function(c,i){
+    var qs=questions.filter(function(q){return q.cat===c;});
+    var a=qs.reduce(function(s,q){return s+(q.attempts||0);},0);
+    var r=qs.reduce(function(s,q){return s+(q.correct||0);},0);
+    var pct=a>0?Math.round(r/a*100):null;
+    var due=qs.filter(isDue).length;
+    var pctColor=pct===null?'var(--text2)':pct>=70?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
+    var emoji=catEmojis[i%catEmojis.length];
+    var safeC=c.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return'<div class="folder-card" data-idx="'+i+'">'
+      +(due>0?'<div class="folder-due">'+due+'件期限</div>':'')
+      +'<div class="folder-emoji">'+emoji+'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+      +'<span class="folder-name">'+safeC+'</span>'
+      +'<span class="cat-edit-btn" data-idx="'+i+'" style="cursor:pointer;font-size:14px;padding:2px;color:var(--text3)">✏️</span>'
+      +'</div>'
+      +'<div class="folder-count">'+qs.length+'問</div>'
+      +'<div style="font-size:14px;font-weight:600;color:'+pctColor+'">'+(pct!==null?pct+'%':'未挑戦')+'</div>'
+      +'<div class="pb" style="margin-top:6px"><div class="pf" style="width:'+(pct||0)+'%;background:'+pctColor+'"></div></div>'
+      +'</div>';
+  }).join('');
+  // イベントをまとめてバインド
+  document.querySelectorAll('#folder-grid .folder-card').forEach(function(el,i){
+    el.addEventListener('click',function(e){if(!e.target.classList.contains('cat-edit-btn'))openFolder(window._cats[i]);});
+    var btn=el.querySelector('.cat-edit-btn');
+    if(btn)btn.addEventListener('click',function(e){e.stopPropagation();openCatModal(window._cats[i]);});
+  });
+}
+function openFolder(cat){currentCat=cat;document.getElementById('folder-view').style.display='none';document.getElementById('qlist-view').style.display='block';document.getElementById('manage-title').textContent=cat;renderQList();}
+function backToFolders(){
+  currentCat=null;
+  selectMode=false;selectedIds=[];
+  var btn=document.getElementById('select-mode-btn');if(btn){btn.textContent='選択';btn.style.color='';}
+  var bar=document.getElementById('bulk-bar');if(bar)bar.style.display='none';
+  document.getElementById('folder-view').style.display='block';
+  document.getElementById('qlist-view').style.display='none';
+  document.getElementById('manage-title').textContent='問題一覧';
+  renderFolders();
+}
+var selectMode = false;
+var selectedIds = [];
+
+function toggleSelectMode(){
+  selectMode = !selectMode;
+  selectedIds = [];
+  var btn = document.getElementById('select-mode-btn');
+  var bar = document.getElementById('bulk-bar');
+  btn.textContent = selectMode ? 'キャンセル' : '選択';
+  btn.style.color = selectMode ? 'var(--red)' : '';
+  bar.style.display = selectMode ? 'flex' : 'none';
+  document.getElementById('selected-count').textContent = '0件選択中';
+  document.getElementById('select-all-cb').checked = false;
+  renderQList();
+}
+
+function toggleSelectAll(checked){
+  selectedIds = checked ? getFilteredQs().map(function(q){return q.id;}) : [];
+  document.getElementById('selected-count').textContent = selectedIds.length + '件選択中';
+  renderQList();
+}
+
+function toggleSelect(id){
+  var idx = selectedIds.indexOf(id);
+  if(idx>=0) selectedIds.splice(idx,1);
+  else selectedIds.push(id);
+  document.getElementById('selected-count').textContent = selectedIds.length + '件選択中';
+  var allIds = getFilteredQs().map(function(q){return q.id;});
+  document.getElementById('select-all-cb').checked = selectedIds.length === allIds.length;
+}
+
+function bulkDelete(){
+  if(!selectedIds.length){showToast('削除する問題を選択してください','error');return;}
+  if(!confirm(selectedIds.length+'件の問題を削除しますか？'))return;
+  questions = questions.filter(function(q){return!selectedIds.includes(q.id);});
+  selectedIds = [];
+  saveData(); updateAll();
+  renderFolders();
+  // カテゴリーがまだあれば一覧を更新、なければフォルダーに戻る
+  var remaining = currentCat ? questions.filter(function(q){return q.cat===currentCat;}).length : 0;
+  if(remaining > 0) renderQList();
+  else backToFolders();
+  showToast('削除しました','success');
+}
+
+function getFilteredQs(){
+  var ft=document.getElementById('f-type')?document.getElementById('f-type').value:'all';
+  var kw=(document.getElementById('q-search')?document.getElementById('q-search').value:'').trim().toLowerCase();
+  var qs=currentCat?questions.filter(function(q){return q.cat===currentCat;}):questions;
+  if(ft!=='all')qs=qs.filter(function(q){return(q.type||'mcq')===ft;});
+  if(kw){qs=qs.filter(function(q){
+    var isFc=(q.type||'mcq')==='fc';
+    var text=(isFc?(q.front||'')+(q.back||''):(q.q||'')+Object.values(q.choices||{}).join(''))+' '+(q.memo||'')+' '+(q.cat||'');
+    return text.toLowerCase().includes(kw);
+  });}
+  return qs;
+}
+
+function searchAllQ(){
+  var kw=(document.getElementById('folder-search')?document.getElementById('folder-search').value:'').trim().toLowerCase();
+  var results=document.getElementById('folder-search-results');
+  var gridWrap=document.getElementById('folder-grid-wrap');
+  if(!kw){results.style.display='none';gridWrap.style.display='block';return;}
+  var qs=questions.filter(function(q){
+    var isFc=(q.type||'mcq')==='fc';
+    var text=(isFc?(q.front||'')+(q.back||''):(q.q||'')+Object.values(q.choices||{}).join(''))+' '+(q.memo||'')+' '+(q.cat||'');
+    return text.toLowerCase().includes(kw);
+  });
+  results.style.display='block';
+  gridWrap.style.display='none';
+  var el=document.getElementById('search-qlist');
+  if(!qs.length){el.innerHTML='<div class="empty">「'+kw+'」に一致する問題がありません</div>';return;}
+  el.innerHTML=qs.map(function(q){
+    var pct=(q.attempts||0)>0?Math.round((q.correct||0)/(q.attempts||0)*100):null;
+    var bc=pct===null?'bgray':pct>=70?'bgr':pct>=50?'bam':'brd';
+    var isFc=(q.type||'mcq')==='fc';
+    var txt=isFc?q.front:q.q;
+    return'<div class="qi"><div class="qim"><div class="qimt"><span class="badge bac">'+q.cat+'</span>'+(isFc?'<span class="badge bpu">暗記</span>':'<span class="badge bgray">択一</span>')+'<span class="badge '+bc+'">'+(pct!==null?pct+'%':'未挑戦')+'</span>'+(isDue(q)?'<span class="badge bac" style="font-size:10px">期限</span>':'')+'</div><div class="qitx">'+(txt.length>70?txt.slice(0,70)+'…':txt)+'</div></div><div class="qi-actions"><button class="btn gh sm" style="padding:7px;color:var(--accent)" onclick="openEdit('+q.id+')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button></div></div>';
+  }).join('');
+}
+
+function renderQList(){
+  var qs = getFilteredQs();
+  var el=document.getElementById('qlist');
+  if(!qs.length){el.innerHTML='<div class="empty">問題がありません</div>';return;}
+  el.innerHTML=qs.map(function(q){
+    var pct=(q.attempts||0)>0?Math.round((q.correct||0)/(q.attempts||0)*100):null;
+    var bc=pct===null?'bgray':pct>=70?'bgr':pct>=50?'bam':'brd';
+    var iv=q.sr&&q.sr.interval;var isFc=(q.type||'mcq')==='fc';var txt=isFc?q.front:q.q;
+    var isSelected = selectedIds.includes(q.id);
+    var cbHtml = selectMode ? '<input type="checkbox" '+(isSelected?'checked':'')+' onchange="toggleSelect('+q.id+')" style="width:18px;height:18px;margin-right:8px;flex-shrink:0;accent-color:var(--accent)">' : '';
+    return'<div class="qi" style="'+(isSelected?'background:var(--accent-l);margin:0 -16px;padding:14px 16px;':'')+'"><div style="display:flex;align-items:flex-start;flex:1;min-width:0">'+cbHtml+'<div class="qim"><div class="qimt">'+(isFc?'<span class="badge bpu">暗記</span>':'<span class="badge bgray">択一</span>')+(q.year?'<span style="font-size:11px;color:var(--text3);font-family:var(--mono)">'+q.year+'</span>':'')+'<span class="badge '+bc+'">'+(pct!==null?pct+'%':'未挑戦')+'</span>'+(iv?'<span class="badge bgray" style="font-size:10px">'+iv+'日</span>':'')+(isDue(q)?'<span class="badge bac" style="font-size:10px">期限</span>':'')+'</div><div class="qitx">'+(txt.length>70?txt.slice(0,70)+'…':txt)+'</div></div></div>'+(selectMode?'':'<div class="qi-actions"><button class="btn gh sm" style="padding:7px;color:var(--accent)" onclick="openEdit('+q.id+')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="btn gh sm" style="padding:7px;color:var(--text3)" onclick="delQ('+q.id+')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button></div>')+'</div>';
+  }).join('');
+}
+
+function delQ(id){
+  if(!confirm('削除しますか？'))return;
+  questions=questions.filter(function(q){return q.id!==id;});
+  deleteQFromFS(id).catch(function(){});
+  saveData();updateAll();
+  showToast('削除しました');
+  if(currentCat){
+    var remaining=questions.filter(function(q){return q.cat===currentCat;}).length;
+    if(remaining===0)backToFolders();
+    else renderQList();
+  }
+}
+function resetAll(){if(!confirm('全データをリセットしますか？'))return;questions.forEach(function(q){q.attempts=0;q.correct=0;q.sr=null;});activity={};missedIds=[];saveData();updateAll();showToast('リセットしました');}
+
+function openEdit(id){var q=questions.find(function(x){return x.id===id;});if(!q)return;var isFc=(q.type||'mcq')==='fc';document.getElementById('edit-id').value=id;document.getElementById('edit-cat').value=q.cat||'';document.getElementById('edit-yr').value=q.year||'';document.getElementById('edit-mem').value=q.memo||'';document.getElementById('edit-mcq-fields').style.display=isFc?'none':'block';document.getElementById('edit-fc-fields').style.display=isFc?'block':'none';if(isFc){document.getElementById('edit-front').value=q.front||'';document.getElementById('edit-back').value=q.back||'';}else{document.getElementById('edit-q').value=q.q||'';['a','b','c','d','e'].forEach(function(l){document.getElementById('edit-'+l).value=q.choices&&q.choices[l]?q.choices[l]:'';});document.querySelectorAll('#edit-achk input').forEach(function(i){i.checked=(q.answers||[]).includes(i.value);i.closest('.cl').classList.toggle('on',i.checked);});}document.getElementById('edit-modal').style.display='flex';}
+function saveEdit(){
+  var id=+document.getElementById('edit-id').value;
+  var qi=questions.findIndex(function(x){return x.id===id;});
+  if(qi<0)return;
+  var q=questions[qi];var isFc=(q.type||'mcq')==='fc';
+  var cat=document.getElementById('edit-cat').value.trim();
+  if(!cat){showToast('カテゴリーは必須です','error');return;}
+  if(isFc){
+    var front=document.getElementById('edit-front').value.trim();
+    var back=document.getElementById('edit-back').value.trim();
+    if(!front||!back){showToast('表面と裏面は必須です','error');return;}
+    q.front=front;q.back=back;
+    // 画像処理
+    var imgInput=document.getElementById('edit-image');
+    if(imgInput&&imgInput.files&&imgInput.files[0]){
+      var reader=new FileReader();
+      reader.onload=function(e){
+        q.image=e.target.result;
+        saveData();updateAll();closeEditModal();showToast('保存しました','success');
+      };
+      reader.readAsDataURL(imgInput.files[0]);
+      return;
+    } else if(window._editImageCleared){
+      q.image='';
+    }
+  } else {
+    var qq=document.getElementById('edit-q').value.trim();
+    var ans=[...document.querySelectorAll('#edit-achk input:checked')].map(function(i){return i.value;});
+    if(!qq){showToast('問題文は必須です','error');return;}
+    if(!ans.length){showToast('正解を選択してください','error');return;}
+    q.q=qq;
+    q.choices={a:document.getElementById('edit-a').value.trim(),b:document.getElementById('edit-b').value.trim(),c:document.getElementById('edit-c').value.trim(),d:document.getElementById('edit-d').value.trim(),e:document.getElementById('edit-e').value.trim()};
+    q.answers=ans;
+  }
+  q.cat=cat;
+  q.year=document.getElementById('edit-yr').value.trim();
+  q.memo=document.getElementById('edit-mem').value.trim();
+  saveData();updateAll();closeEditModal();showToast('保存しました','success');
+}
+function closeEditModal(){
+  document.getElementById('edit-modal').style.display='none';
+  document.getElementById('front-preview').style.display='none';
+}
+
+// 画像関連
+function previewImage(input, previewId){
+  var file=input.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var preview=document.getElementById(previewId);
+    var img=document.getElementById(previewId+'-img');
+    var btn=document.getElementById(previewId.replace('preview','clear')||previewId+'-clear');
+    if(img){img.src=e.target.result;img.style.display='block';}
+    if(preview)preview.style.display='block';
+    var clearBtn=preview?preview.querySelector('button'):null;
+    if(clearBtn)clearBtn.style.display='block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImage(inputId, previewId){
+  var input=document.getElementById(inputId);
+  var preview=document.getElementById(previewId);
+  var img=document.getElementById(previewId+'-img');
+  if(input)input.value='';
+  if(img){img.src='';img.style.display='none';}
+  if(preview)preview.style.display='none';
+  // edit画面の場合は現在の画像を削除フラグ
+  if(inputId==='edit-image')window._editImageCleared=true;
+}
+
+function getImageData(inputId){
+  var input=document.getElementById(inputId);
+  if(!input||!input.files||!input.files[0])return null;
+  return new Promise(function(resolve){
+    var reader=new FileReader();
+    reader.onload=function(e){resolve(e.target.result);};
+    reader.readAsDataURL(input.files[0]);
+  });
+}
+function toggleFrontPreview(){
+  var preview = document.getElementById('front-preview');
+  var btn = event.target;
+  if(preview.style.display==='none'){
+    updateFrontPreview();
+    preview.style.display='block';
+    btn.textContent='プレビューを閉じる';
+  } else {
+    preview.style.display='none';
+    btn.textContent='プレビュー表示';
+  }
+}
+function updateFrontPreview(){
+  var preview = document.getElementById('front-preview');
+  if(preview.style.display!=='none'){
+    preview.textContent = document.getElementById('edit-front').value;
+  }
+}
+
+function doExportJSON(){if(!questions.length){showToast('問題がありません','error');return;}var data={engram:true,version:1,exportedAt:new Date().toISOString(),cards:questions.map(function(q){return{type:q.type||'mcq',cat:q.cat||'',year:q.year||'',front:q.front,back:q.back,q:q.q,choices:q.choices,answers:q.answers,memo:q.memo||''};})};var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='engram_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);showToast('JSONを出力しました','success');}
+
+function doImportCards(cards){
+  var count=0,skipped=0;
+  cards.forEach(function(c){
+    var isFc=c.type==='fc';
+    if(isFc&&(!c.front||!c.back))return;
+    if(!isFc&&(!c.q||!c.answers||!c.answers.length))return;
+    // 重複チェック（表面/問題文が同じものはスキップ）
+    var isDup=questions.some(function(q){
+      return isFc?(q.front===c.front&&q.cat===c.cat):(q.q===c.q&&q.cat===c.cat);
+    });
+    if(isDup){skipped++;return;}
+    questions.push({id:Date.now()+Math.random(),type:c.type||'mcq',cat:c.cat||'未分類',year:c.year||'',front:c.front||'',back:c.back||'',q:c.q||'',choices:c.choices||{},answers:c.answers||[],memo:c.memo||'',attempts:0,correct:0,sr:null,image:c.image||''});
+    count++;
+  });
+  if(!count&&!skipped){showToast('有効なカードが見つかりませんでした','error');return;}
+  saveData();updateAll();renderFolders();
+  if(skipped>0)showToast(count+'枚インポート（重複'+skipped+'枚スキップ）','success');
+  else showToast(count+'枚インポートしました！','success');
+}
+function handleImportFile(file){var reader=new FileReader();reader.onload=function(e){try{var data=JSON.parse(e.target.result);if(!data.engram||!Array.isArray(data.cards)){showToast('Engram形式のJSONではありません','error');return;}doImportCards(data.cards);}catch(err){showToast('JSONの読み込みに失敗しました','error');}};reader.readAsText(file);}
+
+document.getElementById('import-file').addEventListener('change',function(e){var file=e.target.files[0];if(file)handleImportFile(file);e.target.value='';});
+var il=document.getElementById('import-label');il.addEventListener('dragover',function(e){e.preventDefault();this.style.background='#d4efee';});il.addEventListener('dragleave',function(){this.style.background='var(--accent-l)';});il.addEventListener('drop',function(e){e.preventDefault();this.style.background='var(--accent-l)';var file=e.dataTransfer.files[0];if(file&&file.name.endsWith('.json'))handleImportFile(file);else showToast('JSONファイルを選択してください','error');});
+
+// ===== STATS / CHARTS =====
+function destroyChart(id){if(charts[id]){charts[id].destroy();charts[id]=null;}}
+
+function updateStats(){
+  document.getElementById('st-ta').textContent=questions.reduce(function(s,q){return s+(q.attempts||0);},0);
+  document.getElementById('st-str').innerHTML=streak()+'<span style="font-size:14px"> 日</span>';
+  document.getElementById('st-td').textContent=todayCount();
+  document.getElementById('st-mt').textContent=matureCount();
+
+  // 習熟完了予測
+  var unmature=questions.filter(function(q){return(q.sr&&q.sr.interval||0)<21;}).length;
+  var avgPerDay=7; // 1日平均解答数（推定）
+  var td=today();var last7days=0;for(var d=td-6;d<=td;d++)last7days+=(activity[d]||0);if(last7days>0)avgPerDay=Math.round(last7days/7);
+  var predEl=document.getElementById('predict-days');var predDate=document.getElementById('predict-date');
+  if(unmature===0){predEl.textContent='完了！';predDate.textContent='全問習熟済みです🎉';}
+  else if(avgPerDay===0){predEl.textContent='—';predDate.textContent='まず問題を解いてみましょう';}
+  else{var days=Math.ceil(unmature/avgPerDay*3);predEl.textContent=days+'日';var dt=new Date(Date.now()+days*DAYS);predDate.textContent=dt.getMonth()+1+'月'+dt.getDate()+'日頃に完了予定';}
+
+  // 週ごとの学習量グラフ（棒グラフ）
+  var weekLabels=[],weekData=[];
+  for(var w=7;w>=0;w--){var start=td-w*7-6;var cnt=0;for(var dd=start;dd<=start+6;dd++)cnt+=(activity[dd]||0);var dt2=new Date((td-w*7)*DAYS);weekLabels.push((dt2.getMonth()+1)+'/'+(dt2.getDate()));weekData.push(cnt);}
+  destroyChart('weekly');
+  var wc=document.getElementById('weekly-chart').getContext('2d');
+  charts.weekly=new Chart(wc,{type:'bar',data:{labels:weekLabels,datasets:[{data:weekData,backgroundColor:'rgba(58,175,169,0.6)',borderColor:'#3aafa9',borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:'#b0b8c1'},grid:{color:'rgba(0,0,0,0.05)'}},x:{ticks:{color:'#b0b8c1'},grid:{display:false}}}}});
+
+  // 正答率トレンド（週別）
+  var trendLabels=[],trendData=[];
+  for(var w2=7;w2>=0;w2--){var wStart=td-w2*7-6;var wAtt=0,wCor=0;questions.forEach(function(q){if(q.sr&&q.sr.lastRated>=wStart&&q.sr.lastRated<=wStart+6){wAtt++;if((q.correct||0)>0)wCor++;}});var dt3=new Date((td-w2*7)*DAYS);trendLabels.push((dt3.getMonth()+1)+'/'+(dt3.getDate()));trendData.push(wAtt>0?Math.round(wCor/wAtt*100):null);}
+  // 全体正答率を週ごとに近似
+  var att=questions.reduce(function(s,q){return s+(q.attempts||0);},0);var cor=questions.reduce(function(s,q){return s+(q.correct||0);},0);var overallPct=att>0?Math.round(cor/att*100):0;
+  var filled=trendData.map(function(v){return v!==null?v:overallPct;});
+  destroyChart('trend');
+  var tc=document.getElementById('trend-chart').getContext('2d');
+  charts.trend=new Chart(tc,{type:'line',data:{labels:trendLabels,datasets:[{data:filled,borderColor:'#3aafa9',backgroundColor:'rgba(58,175,169,0.1)',tension:0.4,fill:true,pointBackgroundColor:'#3aafa9',pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{callback:function(v){return v+'%';},color:'#b0b8c1'},grid:{color:'rgba(0,0,0,0.05)'}},x:{ticks:{color:'#b0b8c1'},grid:{display:false}}}}});
+
+  // 習熟度ドーナツ
+  var newC=questions.filter(function(q){return!q.sr||!q.sr.reps;}).length;
+  var lrn=questions.filter(function(q){return q.sr&&q.sr.reps>0&&(q.sr.interval||0)<7;}).length;
+  var rev=questions.filter(function(q){return(q.sr&&q.sr.interval||0)>=7&&(q.sr&&q.sr.interval||0)<21;}).length;
+  var mat=matureCount();
+  destroyChart('donut');
+  var dc=document.getElementById('donut-chart').getContext('2d');
+  charts.donut=new Chart(dc,{type:'doughnut',data:{labels:['新規','学習中','復習','習熟済み'],datasets:[{data:[newC,lrn,rev,mat],backgroundColor:['#4a7fc1','#e09b3a','#4caf82','#3aafa9'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false}}}});
+  var total=questions.length||1;
+  document.getElementById('donut-legend').innerHTML=[{label:'新規',count:newC,c:'var(--blue)'},{label:'学習中',count:lrn,c:'var(--amber)'},{label:'復習',count:rev,c:'var(--green)'},{label:'習熟済み',count:mat,c:'var(--accent)'}].map(function(d){return'<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><div style="width:10px;height:10px;border-radius:50%;background:'+d.c+';flex-shrink:0"></div><div style="font-size:12px;color:var(--text2);flex:1">'+d.label+'</div><div style="font-size:13px;font-weight:600;font-family:var(--mono)">'+d.count+'</div></div>';}).join('');
+
+  // カテゴリー別レーダー
+  var cs=cats();
+  destroyChart('radar');
+  if(cs.length>=3){var radarData=cs.map(function(c){var qs=questions.filter(function(q){return q.cat===c;});var a=qs.reduce(function(s,q){return s+(q.attempts||0);},0);var r=qs.reduce(function(s,q){return s+(q.correct||0);},0);return a>0?Math.round(r/a*100):0;});var rc=document.getElementById('radar-chart').getContext('2d');charts.radar=new Chart(rc,{type:'radar',data:{labels:cs,datasets:[{data:radarData,backgroundColor:'rgba(58,175,169,0.2)',borderColor:'#3aafa9',pointBackgroundColor:'#3aafa9',pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{stepSize:25,callback:function(v){return v+'%';},color:'#b0b8c1'},grid:{color:'rgba(0,0,0,0.07)'},pointLabels:{color:'var(--text2)',font:{size:11}}}}}});}else{document.getElementById('radar-chart').parentElement.innerHTML='<div class="empty">カテゴリーが3つ以上あるとレーダーチャートが表示されます</div>';}
+
+  // ヒートマップ
+  var hm=document.getElementById('heatmap');var days=26*7;var cells='';for(var i=days-1;i>=0;i--){var d2=today()-i;var cnt2=activity[d2]||0;var lv=cnt2===0?0:cnt2<3?1:cnt2<6?2:cnt2<10?3:4;cells+='<div class="hc l'+lv+'"></div>';}hm.innerHTML=cells;
+
+  // 問題の状態
+  document.getElementById('dist').innerHTML=[{label:'新規',count:newC,c:'bl'},{label:'学習中',count:lrn,c:'am'},{label:'復習',count:rev,c:'gr'},{label:'習熟済み',count:mat,c:'ac'}].map(function(d){return'<div class="di"><span class="dl">'+d.label+'</span><div class="dbw"><div class="db pf '+d.c+'" style="width:'+Math.round(d.count/total*100)+'%"></div></div><span class="dc">'+d.count+'</span></div>';}).join('');
+
+  // カテゴリー別習熟度
+  document.getElementById('cat-mas').innerHTML=!cs.length?'<div class="empty">データなし</div>':cs.map(function(c){var qs=questions.filter(function(q){return q.cat===c;});var a=qs.reduce(function(s,q){return s+(q.attempts||0);},0);var r=qs.reduce(function(s,q){return s+(q.correct||0);},0);var pct=a>0?Math.round(r/a*100):0;var mat2=qs.filter(function(q){return(q.sr&&q.sr.interval||0)>=21;}).length;var bc=pct>=70?'gr':pct>=50?'am':'rd';return'<div class="cat-item"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:500">'+c+'</span><span style="font-size:12px;font-family:var(--mono);color:var(--text2)">'+pct+'% | 習熟'+mat2+'/'+qs.length+'</span></div><div class="pb"><div class="pf '+bc+'" style="width:'+pct+'%"></div></div></div>';}).join('');
+}
+
+// ===== QUIZ =====
+var sess={queue:[],idx:0,correct:0,answered:false,missedInSession:[]};var fcFlipped=false;
+function startReview(){var pool=questions.filter(isDue);if(!pool.length){showToast('期限切れの問題がありません','error');return;}beginSession(pool);}
+function startMissed(){var pool=questions.filter(function(q){return missedIds.includes(q.id);});if(!pool.length){showToast('不正解の問題がありません','error');return;}missedIds=[];beginSession(pool);}
+function startQuiz(){var cat=document.getElementById('qz-cat').value;var mode=document.getElementById('qz-mode').value;var pool=cat==='all'?[...questions]:questions.filter(function(q){return q.cat===cat;});if(mode==='due')pool=pool.filter(isDue);else if(mode==='weak')pool.sort(function(a,b){var ra=(a.attempts||0)>0?(a.correct||0)/(a.attempts||0):-1;var rb=(b.attempts||0)>0?(b.correct||0)/(b.attempts||0):-1;return ra-rb;});else if(mode==='new')pool=pool.filter(function(q){return!q.sr||!q.sr.reps;});else pool.sort(function(){return Math.random()-0.5;});if(!pool.length){showToast('この条件で問題がありません','error');return;}beginSession(pool);}
+function beginSession(pool){sess={queue:pool,idx:0,correct:0,answered:false,missedInSession:[]};document.getElementById('q-setup').style.display='none';document.getElementById('q-res').style.display='none';document.getElementById('q-main').style.display='block';showQ();}
+function showQ(){var q=sess.queue[sess.idx];var tot=sess.queue.length;var isFc=(q.type||'mcq')==='fc';sess.answered=false;fcFlipped=false;
+  var prevBtn=document.getElementById('q-prev-btn');
+  if(prevBtn)prevBtn.style.display=sess.idx>0?'inline-flex':'none';
+  var fr=document.getElementById('fc-front-reveal');if(fr)fr.style.display='none';
+  var frt=document.getElementById('fc-front-reveal-text');if(frt){frt.style.display='none';frt.textContent='';}
+  var frb=document.getElementById('fc-reveal-btn');if(frb)frb.textContent='表面を確認する';
+  var remaining=tot-sess.idx;document.getElementById('q-prog').textContent=(sess.idx+1)+' / '+tot+' （残り'+remaining+'問）';
+  document.getElementById('q-bar').style.width=Math.round(sess.idx/tot*100)+'%';document.getElementById('q-fb').style.display='none';document.getElementById('rbtns').style.display='none';
+  if(isFc){document.getElementById('q-mcq-view').style.display='none';document.getElementById('q-fc-view').style.display='block';document.getElementById('fc-cb').textContent=q.cat;document.getElementById('fc-yr').textContent=q.year||'';document.getElementById('fc-front-text').textContent=q.front;document.getElementById('fc-back-text').textContent=q.back;document.getElementById('fc-memo').style.display='none';document.getElementById('fc-card').classList.remove('flipped');}
+  else{document.getElementById('q-mcq-view').style.display='block';document.getElementById('q-fc-view').style.display='none';document.getElementById('q-cb').textContent=q.cat;document.getElementById('q-type-b').style.display='none';document.getElementById('q-yr').textContent=q.year||'';var ib=document.getElementById('q-ivb');if(q.sr&&q.sr.interval){ib.style.display='inline-flex';ib.textContent='間隔 '+q.sr.interval+'日';}else ib.style.display='none';document.getElementById('q-tx').textContent=q.q;var ls=['a','b','c','d','e'];document.getElementById('q-ch').innerHTML=ls.filter(function(l){return q.choices&&q.choices[l];}).map(function(l){return'<button class="ch" onclick="pick(\''+l+'\')"><span class="chl">'+l+'</span><span>'+q.choices[l]+'</span></button>';}).join('');}
+}
+function flipCard(){
+  if(!fcFlipped){
+    // 表面→裏面
+    fcFlipped=true;
+    document.getElementById('fc-card').classList.add('flipped');
+    var q=sess.queue[sess.idx];
+    var m=document.getElementById('fc-memo');
+    if(q.memo){m.style.display='block';m.textContent=q.memo;}else m.style.display='none';
+    if(!sess.answered){
+      sess.answered=true;
+      var qi=questions.findIndex(function(x){return x.id===q.id;});
+      if(qi>=0)questions[qi].attempts=(questions[qi].attempts||0)+1;
+      var td=today();activity[td]=(activity[td]||0)+1;
+      saveData();
+    }
+    document.getElementById('rbtns').style.display='grid';
+    [0,1,2,3].forEach(function(r){document.getElementById('ri'+r).textContent=itText(q,r);});
+    var fr=document.getElementById('fc-front-reveal');if(fr)fr.style.display='none';
+  } else {
+    // 裏面→表面（トグル）
+    fcFlipped=false;
+    document.getElementById('fc-card').classList.remove('flipped');
+    document.getElementById('fc-memo').style.display='none';
+  }
+}
+function pick(p){if(sess.answered)return;sess.answered=true;var q=sess.queue[sess.idx];var isC=q.answers.includes(p);document.querySelectorAll('.ch').forEach(function(b){b.disabled=true;});document.querySelectorAll('.ch').forEach(function(b){var l=b.querySelector('.chl').textContent;if(q.answers.includes(l))b.classList.add('cor');else if(l===p)b.classList.add('wrg');});var fb=document.getElementById('q-fb');fb.style.display='block';fb.className='fb '+(isC?'cor':'wrg');fb.innerHTML=isC?'<strong>正解！</strong>'+(q.memo?'<div class="memo">'+q.memo+'</div>':''):'<strong>不正解。正解は '+q.answers.join('・')+'）</strong>'+(q.memo?'<div class="memo">'+q.memo+'</div>':'');if(isC)sess.correct++;else sess.missedInSession.push(q.id);var qi=questions.findIndex(function(x){return x.id===q.id;});if(qi>=0){questions[qi].attempts=(questions[qi].attempts||0)+1;if(isC)questions[qi].correct=(questions[qi].correct||0)+1;}var td=today();activity[td]=(activity[td]||0)+1;document.getElementById('rbtns').style.display='grid';[0,1,2,3].forEach(function(r){document.getElementById('ri'+r).textContent=itText(q,r);});saveData();}
+function rate(r){var q=sess.queue[sess.idx];var qi=questions.findIndex(function(x){return x.id===q.id;});if(qi>=0)questions[qi].sr=sm2(questions[qi],r);saveData();sess.idx++;if(sess.idx>=sess.queue.length){showResult();return;}showQ();}
+function showResult(){document.getElementById('q-main').style.display='none';document.getElementById('q-res').style.display='block';var tot=sess.queue.length;var pct=Math.round(sess.correct/tot*100);document.getElementById('r-pct').textContent=pct+'%';document.getElementById('r-em').textContent=pct>=80?'🎉':pct>=60?'💪':'📖';document.getElementById('r-msg').textContent=pct>=80?'素晴らしい！':pct>=60?'いい調子！':'もう一度復習しよう';document.getElementById('r-dt').textContent=tot+'問中 '+sess.correct+'問正解';missedIds=[...new Set([...missedIds,...sess.missedInSession])];var mi=document.getElementById('r-missed-info');mi.textContent=missedIds.length>0?'不正解 '+missedIds.length+'問 → 演習画面の「再挑戦」で復習できます':'';updateHome();}
+function showSetup(){document.getElementById('q-res').style.display='none';document.getElementById('q-main').style.display='none';document.getElementById('q-setup').style.display='block';updateDueBanner();updateHome();}
+function reviewToday(){
+  // 今日の終わりに再度出題されるようにdueを今日に設定
+  var q=sess.queue[sess.idx];
+  var qi=questions.findIndex(function(x){return x.id===q.id;});
+  if(qi>=0){
+    var sr=questions[qi].sr||{interval:1,ease:2.5,reps:0};
+    sr.due=today(); // 今日また出る
+    questions[qi].sr=sr;
+  }
+  saveData();
+  showToast('今日また復習します','success');
+  // 次の問題へ
+  sess.idx++;
+  if(sess.idx>=sess.queue.length){showResult();return;}
+  showQ();
+}
+function prevQ(){
+  if(sess.idx<=0)return;
+  sess.idx--;
+  sess.answered=false;
+  showQ();
+}
+function endQuiz(){if(!confirm('終了しますか？'))return;showSetup();}
+
+function toggleFrontReveal(){
+  var txt = document.getElementById('fc-front-reveal-text');
+  var btn = document.getElementById('fc-reveal-btn');
+  if(txt.style.display==='none'){
+    txt.style.display='block';
+    btn.textContent='表面を閉じる';
+  } else {
+    txt.style.display='none';
+    btn.textContent='表面を確認する';
+  }
+}
+function openCatEdit(){
+  var cs=cats();
+  if(!cs.length){showToast('カテゴリーがありません','error');return;}
+  var sel=document.getElementById('cat-edit-from');
+  sel.innerHTML=cs.map(function(c){return'<option value="'+c+'">'+c+'</option>';}).join('');
+  updateCatEditTo();
+  document.getElementById('cat-edit-modal').style.display='flex';
+}
+function updateCatEditTo(){
+  var from=document.getElementById('cat-edit-from').value;
+  document.getElementById('cat-edit-to').value=from;
+}
+function closeCatEdit(){document.getElementById('cat-edit-modal').style.display='none';}
+function applyCatEdit(){
+  var from=document.getElementById('cat-edit-from').value;
+  var to=document.getElementById('cat-edit-to').value.trim();
+  if(!to){showToast('新しいカテゴリー名を入力してください','error');return;}
+  if(from===to){showToast('同じ名前です','error');return;}
+  var count=0;
+  questions.forEach(function(q){if(q.cat===from){q.cat=to;count++;}});
+  saveData();updateAll();closeCatEdit();
+  showToast(count+'問を「'+to+'」に変更しました','success');
+}
+function openCatModal(cat){
+  document.getElementById('cat-edit-old').value=cat;
+  document.getElementById('cat-edit-new').value=cat;
+  document.getElementById('cat-modal-title').textContent='「'+cat+'」を編集';
+  var cs=cats().filter(function(c){return c!==cat;});
+  document.getElementById('cat-merge-target').innerHTML='<option value="">統合しない</option>'+cs.map(function(c){return'<option value="'+c+'">'+c+'に統合</option>';}).join('');
+  document.getElementById('cat-modal').style.display='flex';
+}
+function closeCatModal(){document.getElementById('cat-modal').style.display='none';}
+
+function saveCatEdit(){
+  var oldCat=document.getElementById('cat-edit-old').value;
+  var newCat=document.getElementById('cat-edit-new').value.trim();
+  var mergeTo=document.getElementById('cat-merge-target').value;
+  if(mergeTo){
+    // 統合：oldCatの問題をmergeToに移動
+    if(!confirm('「'+oldCat+'」の全問題を「'+mergeTo+'」に統合しますか？'))return;
+    questions.forEach(function(q){if(q.cat===oldCat)q.cat=mergeTo;});
+    saveData();updateAll();closeCatModal();
+    showToast('「'+oldCat+'」を「'+mergeTo+'」に統合しました','success');
+  } else {
+    // 名前変更
+    if(!newCat){showToast('カテゴリー名を入力してください','error');return;}
+    if(newCat===oldCat){closeCatModal();return;}
+    if(!confirm('「'+oldCat+'」を「'+newCat+'」に変更しますか？'))return;
+    questions.forEach(function(q){if(q.cat===oldCat)q.cat=newCat;});
+    saveData();updateAll();closeCatModal();
+    showToast('カテゴリー名を変更しました','success');
+  }
+}
+
+function deleteCat(){
+  var cat=document.getElementById('cat-edit-old').value;
+  var count=questions.filter(function(q){return q.cat===cat;}).length;
+  if(!confirm('「'+cat+'」の問題'+count+'件をすべて削除しますか？この操作は取り消せません。'))return;
+  questions=questions.filter(function(q){return q.cat!==cat;});
+  saveData();updateAll();closeCatModal();
+  showToast('「'+cat+'」を削除しました','success');
+}
+
+function copyQ(id){
+  var q=questions.find(function(x){return x.id===id;});
+  if(!q)return;
+  var copy=JSON.parse(JSON.stringify(q));
+  copy.id=Date.now()+Math.random();
+  copy.attempts=0;copy.correct=0;copy.sr=null;copy.image=copy.image||'';
+  questions.push(copy);
+  saveData();updateAll();renderQList();
+  showToast('カードをコピーしました','success');
+}
+function copyQ(id){
+  var q=questions.find(function(x){return x.id===id;});
+  if(!q)return;
+  var copy=JSON.parse(JSON.stringify(q));
+  copy.id=Date.now()+Math.random();
+  copy.attempts=0;copy.correct=0;copy.sr=null;
+  if(copy.type==='fc')copy.front='【コピー】'+copy.front;
+  else copy.q='【コピー】'+copy.q;
+  questions.push(copy);
+  saveData();updateAll();renderQList();
+  showToast('コピーしました！編集して使ってください','success');
+}
+function deleteFromQuiz(){
+  if(sess.queue.length===0)return;
+  var q=sess.queue[sess.idx];
+  if(!confirm('このカードを削除しますか？'))return;
+  questions=questions.filter(function(x){return x.id!==q.id;});
+  sess.queue.splice(sess.idx,1);
+  deleteQFromFS(q.id).catch(function(){});
+  saveData();updateAll();
+  showToast('削除しました','success');
+  if(sess.queue.length===0){showResult();return;}
+  if(sess.idx>=sess.queue.length)sess.idx=sess.queue.length-1;
+  showQ();
+}
+function openEditFromQuiz(){
+  if(sess.queue.length===0)return;
+  var q=sess.queue[sess.idx];
+  openEdit(q.id);
+}
+
+function showToast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');setTimeout(function(){t.className='toast';},2200);}
+
+document.querySelectorAll('#achk input').forEach(function(inp){inp.addEventListener('change',function(){this.closest('.cl').classList.toggle('on',this.checked);});});
+document.querySelectorAll('#edit-achk input').forEach(function(inp){inp.addEventListener('change',function(){this.closest('.cl').classList.toggle('on',this.checked);});});
+
+loadData();
+</script>
+</body>
+</html>
